@@ -9,8 +9,8 @@ services:
     - MYSQL_DATABASE=trunk
     - MYSQL_USER=lumis
     - MYSQL_PASSWORD=lumis
-    mem_limit: 500M
-    command: --max-connections=2000 --max-allowed-packet=256M --log-bin-trust-function-creators=1 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    mem_limit: 700M
+    command: --max-connections=250 --max-allowed-packet=256M --log-bin-trust-function-creators=1 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     security_opt:
     - seccomp:unconfined
     volumes: 
