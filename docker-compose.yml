@@ -1,0 +1,59 @@
+version: "2.4"
+services: 
+  db:
+    image: mysql:8.0.17
+    ports:
+    - 127.0.0.1:3306:3306
+    environment:
+    - MYSQL_ROOT_PASSWORD=lumis
+    - MYSQL_DATABASE=trunk
+    - MYSQL_USER=lumis
+    - MYSQL_PASSWORD=lumis
+    mem_limit: 500M
+    command: --max-connections=2000 --max-allowed-packet=256M --log-bin-trust-function-creators=1 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    security_opt:
+    - seccomp:unconfined
+    volumes: 
+    - /c/lumis/trunk/env/mysql/data:/var/lib/mysql
+
+  bd:
+    build: elasticsearch/config/build
+    ports: 
+    - 127.0.0.1:9200:9200
+    - 127.0.0.1:9300:9300
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+    - bootstrap.memory_lock=true
+    - ES_JAVA_OPTS=-Xms400m -Xmx400m
+    - discovery.type=single-node
+    mem_limit: 800M
+    volumes: 
+    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
+    - /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
+
+  ws:
+    image: nginx:1.17.3
+    ports: 
+    - 0.0.0.0:80:80
+    - 0.0.0.0:443:443
+    volumes: 
+    - /c/lumis/trunk/env/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+    - /c/lumis/trunk/env/nginx/config/keys:/lumis/keys:ro
+    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/lumis/html:ro
+
+  selenium-test:
+    image: selenium/standalone-firefox-debug:2.52.0
+    # volumes:
+    # - /dev/urandom:/dev/random
+    # - /dev/shm:/dev/shm
+    ports:
+    - 127.0.0.1:4444:4444
+    - 127.0.0.1:5900:5900
+    mem_limit: 500M
+
+
+
+
