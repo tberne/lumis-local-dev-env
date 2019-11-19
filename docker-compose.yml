@@ -1,20 +1,39 @@
 version: "2.4"
 services: 
+  # MySQL
+  #db:
+  #  image: mysql:8.0.17
+  #  ports:
+  #  - 127.0.0.1:3306:3306
+  #  environment:
+  #  - MYSQL_ROOT_PASSWORD=lumis
+  #  - MYSQL_DATABASE=trunk
+  #  - MYSQL_USER=lumis
+  #  - MYSQL_PASSWORD=lumis
+  #  command: --max-connections=1000 --max-allowed-packet=256M --log-bin-trust-function-creators=1 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  #  security_opt:
+  #  - seccomp:unconfined
+  #  volumes: 
+  #  - /c/lumis/trunk/env/mysql/data:/var/lib/mysql
+  
+  # SQL Server
   db:
-    image: mysql:8.0.17
-    ports:
-    - 127.0.0.1:3306:3306
-    environment:
-    - MYSQL_ROOT_PASSWORD=lumis
-    - MYSQL_DATABASE=trunk
-    - MYSQL_USER=lumis
-    - MYSQL_PASSWORD=lumis
-    mem_limit: 700M
-    command: --max-connections=250 --max-allowed-packet=256M --log-bin-trust-function-creators=1 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    security_opt:
-    - seccomp:unconfined
-    volumes: 
-    - /c/lumis/trunk/env/mysql/data:/var/lib/mysql
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment: 
+    - ACCEPT_EULA=Y
+    - SA_PASSWORD=Lum!1s!!
+    ports: 
+    - 127.0.0.1:1433:1433
+    # volumes: 
+    # - /c/lumis/trunk/env/sqlserver/data:/var/opt/mssql
+
+  # # Oracle
+  # db:
+  #   image: repo.lumis.com.br:12345/lumis/oracle-database-18c-xe:latest
+  #   ports:
+  #   - 127.0.0.1:1521:1521
+  #   - 127.0.0.1:5500:5500
+  #   - 127.0.0.1:5580:8080
 
   bd:
     build: elasticsearch/config/build
@@ -33,6 +52,13 @@ services:
     volumes: 
     - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
     - /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
+    
+  k:
+    image: docker.elastic.co/kibana/kibana-oss:7.1.1
+    ports:
+    - 127.0.0.1:5601:5601
+    environment:
+    - ELASTICSEARCH_HOSTS=http://bd:9200
 
   ws:
     image: nginx:1.17.3
@@ -45,7 +71,7 @@ services:
     - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/lumis/html:ro
 
   selenium-test:
-    image: selenium/standalone-firefox-debug:2.52.0
+    build: selenium-test/config/build
     # volumes:
     # - /dev/urandom:/dev/random
     # - /dev/shm:/dev/shm
@@ -54,6 +80,30 @@ services:
     - 127.0.0.1:5900:5900
     mem_limit: 500M
 
+  appserver1:
+    build: tomcat/config/build
+    ports:
+    - 127.0.0.1:8081:8080
+    - 127.0.0.1:8001:8000
+    mem_limit: 1G
+    volumes: 
+    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
+    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
+    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
+  
+  # appserver2:
+  #   build: tomcat/config/build
+  #   ports:
+  #   - 127.0.0.1:8082:8080
+  #   - 127.0.0.1:8002:8000
+  #   mem_limit: 1G
+  #   volumes: 
+  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
+  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata2:/lumis/lumisdata
+  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
 
-
-
+  em:
+    image: rnwood/smtp4dev:linux-amd64-3.1.0-ci0868
+    ports: 
+    - 127.0.0.1:10800:80
+    - 127.0.0.1:2525:25
