@@ -51,10 +51,10 @@ services:
     mem_limit: 800M
     volumes: 
     - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
-    - /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
+    #- /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
     
   k:
-    image: docker.elastic.co/kibana/kibana-oss:7.1.1
+    image: docker.elastic.co/kibana/kibana:7.1.1
     ports:
     - 127.0.0.1:5601:5601
     environment:
