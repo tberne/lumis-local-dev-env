@@ -46,9 +46,9 @@ services:
         hard: -1
     environment:
     - bootstrap.memory_lock=true
-    - ES_JAVA_OPTS=-Xms400m -Xmx400m
+    - ES_JAVA_OPTS=-Xms800m -Xmx800m
     - discovery.type=single-node
-    mem_limit: 800M
+    mem_limit: 1500M
     volumes: 
     - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
     #- /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
