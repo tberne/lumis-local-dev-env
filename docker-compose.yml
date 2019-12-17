@@ -80,6 +80,16 @@ services:
     - 127.0.0.1:5900:5900
     mem_limit: 500M
 
+  selenium-doc:
+    image: selenium/standalone-chrome-debug:3.141.59
+    volumes:
+    - /dev/shm:/dev/shm
+    # - /dev/urandom:/dev/random
+    ports:
+    - 127.0.0.1:4444:4444
+    - 127.0.0.1:5900:5900
+    mem_limit: 800M
+
   appserver1:
     build: tomcat/config/build
     ports:
