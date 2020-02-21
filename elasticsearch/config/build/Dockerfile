@@ -1,4 +1,4 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+FROM docker.elastic.co/elasticsearch/elasticsearch:7.2.1
 
 RUN set -x && \
 	sed -i -e 's/rootLogger.level = info/rootLogger.level = warn/' config/log4j2.properties && \

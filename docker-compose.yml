@@ -21,9 +21,11 @@ services:
     image: mcr.microsoft.com/mssql/server:2017-latest
     environment: 
     - ACCEPT_EULA=Y
-    - SA_PASSWORD=Lum!1s!!
+    - SA_PASSWORD=${SQL_SERVER_SA_PASSWD}
     ports: 
     - 127.0.0.1:1433:1433
+    
+    ## Volumes aren't working in this image
     # volumes: 
     # - /c/lumis/trunk/env/sqlserver/data:/var/opt/mssql
 
@@ -46,15 +48,16 @@ services:
         hard: -1
     environment:
     - bootstrap.memory_lock=true
-    - ES_JAVA_OPTS=-Xms800m -Xmx800m
+    - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms800m -Xmx800m}
     - discovery.type=single-node
-    mem_limit: 1500M
+    mem_limit: ${ES_MEM_LIMIT:-1500M}
     volumes: 
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
+    - ${ES_LUMIS_ANALYSIS_SHARE:?Opss.....Lumis analysis share is required}:/usr/share/elasticsearch/config/lumis-analysis:ro
+    # - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
     #- /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
     
   k:
-    image: docker.elastic.co/kibana/kibana:7.1.1
+    image: docker.elastic.co/kibana/kibana:7.2.1
     ports:
     - 127.0.0.1:5601:5601
     environment:
@@ -66,9 +69,9 @@ services:
     - 0.0.0.0:80:80
     - 0.0.0.0:443:443
     volumes: 
-    - /c/lumis/trunk/env/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
-    - /c/lumis/trunk/env/nginx/config/keys:/lumis/keys:ro
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/lumis/html:ro
+    - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./nginx/config/keys:/lumis/keys:ro
+    - ${WWW_DIR:?Opppsss....WWW Dir is required}:/lumis/html:ro
 
   selenium-test:
     build: selenium-test/config/build
@@ -90,16 +93,16 @@ services:
     - 127.0.0.1:5900:5900
     mem_limit: 800M
 
-  appserver1:
-    build: tomcat/config/build
-    ports:
-    - 127.0.0.1:8081:8080
-    - 127.0.0.1:8001:8000
-    mem_limit: 1G
-    volumes: 
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
+  # appserver1:
+  #   build: tomcat/config/build
+  #   ports:
+  #   - 127.0.0.1:8081:8080
+  #   - 127.0.0.1:8001:8000
+  #   mem_limit: 1G
+  #   volumes: 
+  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
+  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
+  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
   
   # appserver2:
   #   build: tomcat/config/build
