@@ -1,2 +1,2 @@
 #!/bin/bash
-./dc start ws db bd
+./dc start ws db bd k
