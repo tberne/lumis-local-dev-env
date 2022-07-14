@@ -1,2 +1,2 @@
 #!/bin/bash
-./dc stop
+./dc stop $@

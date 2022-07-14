@@ -1,2 +1,7 @@
 #!/bin/bash
-./dc start ws db bd
+
+if [ $# -eq 0 ]; then
+	./dc start ws db bd
+else
+	./dc start $@
+fi

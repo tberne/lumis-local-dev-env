@@ -1,13 +1,7 @@
 #!/bin/bash
-./dc exec db /opt/mssql-tools/bin/sqlcmd \
-   -S localhost -U SA -P "Lum!1s!!" \
-   -Q "drop database trunk"
+SQLCMD=//opt/mssql-tools/bin/sqlcmd
+./dc exec db $SQLCMD \
+   -S localhost -U SA -P 'Lum!1s!!' \
+   -Q 'drop database trunk' -d master
 
-./dc exec db /opt/mssql-tools/bin/sqlcmd \
-   -S localhost -U SA -P "Lum!1s!!" \
-   -Q "create database trunk"
-
-
-./dc exec db /opt/mssql-tools/bin/sqlcmd \
-   -S localhost -U SA -P "Lum!1s!!" \
-   -Q "alter database trunk SET READ_COMMITTED_SNAPSHOT ON;"
+./createDB.sh

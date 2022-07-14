@@ -18,7 +18,7 @@ services:
   
   # SQL Server
   db:
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    image: mcr.microsoft.com/mssql/server:2019-CU8-ubuntu-18.04
     environment: 
     - ACCEPT_EULA=Y
     - SA_PASSWORD=Lum!1s!!
@@ -39,7 +39,6 @@ services:
     build: elasticsearch/config/build
     ports: 
     - 127.0.0.1:9200:9200
-    - 127.0.0.1:9300:9300
     ulimits:
       memlock:
         soft: -1
@@ -48,37 +47,53 @@ services:
     - bootstrap.memory_lock=true
     - ES_JAVA_OPTS=-Xms800m -Xmx800m
     - discovery.type=single-node
+    - ELASTIC_USERNAME=${ES_USER_NAME}
+    - ELASTIC_PASSWORD=${ES_PASSWD}
+    - xpack.security.enabled=true
+    - xpack.security.authc.api_key.enabled=true
+    - xpack.encryptedSavedObjects.encryptionKey=ABCDEF09ABCDEF09ABCDEF09ABCDEF09
     mem_limit: 1500M
     volumes: 
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
+    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
     #- /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
     
   k:
-    image: docker.elastic.co/kibana/kibana:7.1.1
+    image: docker.elastic.co/kibana/kibana:7.17.2
     ports:
     - 127.0.0.1:5601:5601
     environment:
     - ELASTICSEARCH_HOSTS=http://bd:9200
+    - SERVER_PUBLICBASEURL=http://kibana
+    - ELASTICSEARCH_USERNAME=${ES_USER_NAME}
+    - ELASTICSEARCH_PASSWORD=${ES_PASSWD}
+    - xpack.security.enabled=true
+    - xpack.encryptedSavedObjects.encryptionKey=ABCDEF09ABCDEF09ABCDEF09ABCDEF09
+    depends_on:
+    - bd
 
   ws:
     image: nginx:1.17.3
     ports: 
     - 0.0.0.0:80:80
     - 0.0.0.0:443:443
-    volumes: 
-    - /c/lumis/trunk/env/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
-    - /c/lumis/trunk/env/nginx/config/keys:/lumis/keys:ro
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/lumis/html:ro
+    volumes:
+    - /mnt/c/lumis/trunk/env/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+    - /mnt/c/lumis/trunk/env/nginx/config/keys:/lumis/keys:ro
+    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/lumis/html:ro
+    links:
+    - k
 
   selenium-test:
-    build: selenium-test/config/build
-    # volumes:
-    # - /dev/urandom:/dev/random
-    # - /dev/shm:/dev/shm
+    image: selenium/standalone-firefox-debug:3.141.59-20210422
+    volumes:
+    - /dev/urandom:/dev/random
+    - /dev/shm:/dev/shm
     ports:
     - 127.0.0.1:4444:4444
     - 127.0.0.1:5900:5900
-    mem_limit: 500M
+    mem_limit: 700M
+    extra_hosts: 
+    - "pclumis153:192.168.1.170"
 
   selenium-doc:
     image: selenium/standalone-chrome-debug:3.141.59
@@ -89,6 +104,8 @@ services:
     - 127.0.0.1:4444:4444
     - 127.0.0.1:5900:5900
     mem_limit: 800M
+    extra_hosts: 
+    - "pclumis153:192.168.1.170"
 
   appserver1:
     build: tomcat/config/build
@@ -97,9 +114,9 @@ services:
     - 127.0.0.1:8001:8000
     mem_limit: 1G
     volumes: 
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
-    - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
+    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
+    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
+    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
   
   # appserver2:
   #   build: tomcat/config/build
@@ -108,12 +125,12 @@ services:
   #   - 127.0.0.1:8002:8000
   #   mem_limit: 1G
   #   volumes: 
-  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
-  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata2:/lumis/lumisdata
-  #   - /c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
+  #   - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
+  #   - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata2:/lumis/lumisdata
+  #   - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
 
   em:
-    image: rnwood/smtp4dev:linux-amd64-3.1.0-ci0868
+    image: rnwood/smtp4dev:3.1.2-ci20201230100
     ports: 
     - 127.0.0.1:10800:80
-    - 127.0.0.1:2525:25
+    - 127.0.0.1:25:25
