@@ -18,14 +18,14 @@ services:
   
   # SQL Server
   db:
-    image: mcr.microsoft.com/mssql/server:2019-CU8-ubuntu-18.04
+    image: mcr.microsoft.com/mssql/server:2022-CU10-ubuntu-22.04
     environment: 
     - ACCEPT_EULA=Y
     - SA_PASSWORD=Lum!1s!!
     ports: 
     - 127.0.0.1:1433:1433
-    # volumes: 
-    # - /c/lumis/trunk/env/sqlserver/data:/var/opt/mssql
+    volumes: 
+    - sqlserver-data:/var/opt/mssql
 
   # # Oracle
   # db:
@@ -47,41 +47,31 @@ services:
     - bootstrap.memory_lock=true
     - ES_JAVA_OPTS=-Xms800m -Xmx800m
     - discovery.type=single-node
-    - ELASTIC_USERNAME=${ES_USER_NAME}
-    - ELASTIC_PASSWORD=${ES_PASSWD}
-    - xpack.security.enabled=true
-    - xpack.security.authc.api_key.enabled=true
-    - xpack.encryptedSavedObjects.encryptionKey=ABCDEF09ABCDEF09ABCDEF09ABCDEF09
+    - xpack.security.enabled=false
     mem_limit: 1500M
     volumes: 
-    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
-    #- /c/lumis/trunk/env/elasticsearch/data/node-data:/usr/share/elasticsearch/data
+    - ../svnroot/Lumis_PortalJava/portal_install/lumisdata/shared/data/elasticsearch/lumis-analysis:/usr/share/elasticsearch/config/lumis-analysis:ro
+    - elasticsearch-data:/usr/share/elasticsearch/data
     
   k:
-    image: docker.elastic.co/kibana/kibana:7.17.2
+    image: docker.elastic.co/kibana/kibana:8.11.3
     ports:
     - 127.0.0.1:5601:5601
     environment:
     - ELASTICSEARCH_HOSTS=http://bd:9200
     - SERVER_PUBLICBASEURL=http://kibana
-    - ELASTICSEARCH_USERNAME=${ES_USER_NAME}
-    - ELASTICSEARCH_PASSWORD=${ES_PASSWD}
-    - xpack.security.enabled=true
-    - xpack.encryptedSavedObjects.encryptionKey=ABCDEF09ABCDEF09ABCDEF09ABCDEF09
+    - xpack.security.enabled=false
     depends_on:
     - bd
 
   ws:
-    image: nginx:1.17.3
+    image: httpd:2.4.58
     ports: 
     - 0.0.0.0:80:80
     - 0.0.0.0:443:443
     volumes:
-    - /mnt/c/lumis/trunk/env/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
-    - /mnt/c/lumis/trunk/env/nginx/config/keys:/lumis/keys:ro
-    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/lumis/html:ro
-    links:
-    - k
+    - ./httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+    - ../svnroot/Lumis_PortalJava/portal_install/www:/lumis/website/default:ro
 
   selenium-test:
     image: selenium/standalone-firefox-debug:3.141.59-20210422
@@ -107,16 +97,16 @@ services:
     extra_hosts: 
     - "pclumis153:192.168.1.170"
 
-  appserver1:
-    build: tomcat/config/build
-    ports:
-    - 127.0.0.1:8081:8080
-    - 127.0.0.1:8001:8000
-    mem_limit: 1G
-    volumes: 
-    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
-    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
-    - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
+  # appserver1:
+  #   build: tomcat/config/build
+  #   ports:
+  #   - 127.0.0.1:8081:8080
+  #   - 127.0.0.1:8001:8000
+  #   mem_limit: 1G
+  #   volumes: 
+  #   - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/www:/usr/local/tomcat/webapps/ROOT
+  #   - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lumisdata:/lumis/lumisdata
+  #   - /mnt/c/lumis/trunk/svnroot/Lumis_PortalJava/portal_install/lib/shared:/usr/local/tomcat/shared
   
   # appserver2:
   #   build: tomcat/config/build
@@ -134,3 +124,7 @@ services:
     ports: 
     - 127.0.0.1:10800:80
     - 127.0.0.1:25:25
+
+volumes:
+  sqlserver-data:
+  elasticsearch-data:
